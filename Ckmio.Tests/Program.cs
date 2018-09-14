@@ -22,7 +22,7 @@ namespace Ckmio.Tests
             ckmio.Send("Khady", "Hello");
             ckmio.UpdateTopic(topicName, "Topic Update");
             ckmio.SendToStream(streamName, new { age = 60, name = "Bob", gender = "Male"});
-            ckmio.SendToStream(streamName, new { age = 20, name = "Bob", gender = "Male"});
+            ckmio.SendToStream(streamName, new { age = 20, name = "Alice", gender = "Female"});
             Console.ReadLine();
             ckmio.Stop();
         }
