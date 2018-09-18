@@ -68,7 +68,7 @@ namespace Ckmio
         static string Notify = "notify";
         static string Authenticate = "authenticate";
         static string Subscribe = "subscribe";
-        static string Address = "dev.ckmio.com";
+        static string Address = "ckmio.com";
         public static int Port = 7023;
 
         private Byte[] Buffer = new byte[1024];
