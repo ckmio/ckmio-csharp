@@ -10,6 +10,7 @@ namespace Ckmio.Tests
             
             var ckmio = new CkmioClient("community-test-key", "community-test-secret", "Khady", "");
             ckmio.Start();
+            ckmio.Debug = true;
             String topicName = "A brand new topic";  
             String streamName = "A brand new Stream";
             ckmio.SubscribeToChat();

@@ -23,10 +23,10 @@ namespace Ckmio
         {
             _data = dict;
         }
-        public string Content  {get  {return (string)_data["content"];}}
-        public string From  {get  {return (string)_data["from"];}}
-        public string Type  {get  {return (string)_data["type"];}}
-        public string To  {get  {return (string)_data["to"];}}
+        public string Content  {get  { return (string)CkmioClient.TryGet(_data, "content") ;}}
+        public string From {get  { return (string)CkmioClient.TryGet(_data, "from") ;}}
+        public string Type {get  { return (string)CkmioClient.TryGet(_data, "type") ;}}
+        public string To  {get  { return (string)CkmioClient.TryGet(_data, "to") ;}}
     }
 
     public class FunnelCondition{
@@ -54,8 +54,8 @@ namespace Ckmio
     {
         Dictionary<string, Object> _data;
         public TopicUpdate(Dictionary<string, Object> dict) => _data = dict;
-        public string Name  {get  {return (string)_data["name"];}}
-         public string Content  {get  {return (string)_data["content"];}}
+        public string Name {get  { return (string)CkmioClient.TryGet(_data, "name") ;}}
+         public string Content  {get  { return (string)CkmioClient.TryGet(_data, "content") ;}}
     }
     public class CkmioClient
     {
