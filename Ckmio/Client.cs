@@ -4,6 +4,7 @@ using System.Threading;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Ckmio
 {
@@ -50,6 +51,12 @@ namespace Ckmio
          public Object When {get  { return CkmioClient.TryGet(_data, "when") ;}}
     }
 
+    public class State {
+        public int BytesToRead { get; set; }
+        public int Read {get; set ;}
+        public int Type {get; set;}
+    }
+
     public class TopicUpdate
     {
         Dictionary<string, Object> _data;
@@ -72,6 +79,8 @@ namespace Ckmio
         public static int Port = 7023;
 
         private Byte[] Buffer = new byte[1024];
+        private StringBuilder BufferStr = new StringBuilder();
+        private Byte[] tokenSize = new byte[4];
 
         public string PlanKey {get; private set;}
         public string PlanSecret {get; private set;}
@@ -113,7 +122,7 @@ namespace Ckmio
             // Connect to the remote endpoint.  
             Connection.Connect(endpoint); 
             AuthenticateClient();
-            BeginReceive(4); 
+            BeginReceive(new State{Type = 0, BytesToRead =4, Read =0}); 
                 
         }
 
@@ -121,27 +130,43 @@ namespace Ckmio
         public Action<FunnelUpdate> FunnelUpdateHandler {get; set;}
         public Action<TopicUpdate> TopicUpdateHandler {get; set;}
 
-        public void BeginReceive(int numberOfBytes)
+        public void BeginReceive(State state)
         {
-            Connection.BeginReceive(Buffer, 0, numberOfBytes, 0,  
-                new AsyncCallback(EndReceive), Buffer);  
+            Connection.BeginReceive(Buffer, 0, state.BytesToRead-state.Read, 0,  
+                new AsyncCallback(EndReceive), state);  
         }
 
         private void EndReceive(IAsyncResult iar)
         {
             int bytesRead = Connection.EndReceive(iar);
-            switch (bytesRead)
+            var state  =  (State)iar.AsyncState;
+            
+            if(Debug) Console.WriteLine($"bytes read : {bytesRead}");
+
+            switch (state.Type)
             {
-                case 0: Console.WriteLine($"Stopping");Stop();break;
-                case 4: BeginReceive(Buffer[2]*256 + Buffer[3]); break;
-                default: 
-                    var receivedJSON = System.Text.Encoding.UTF8.GetString(Buffer, 0, bytesRead);
-                    if(Debug) Console.WriteLine($"Actual data : {receivedJSON}");
-                    var response = (JsonConvert.DeserializeObject<Response>(receivedJSON));
-                    HandleResponse(response);
-                    BeginReceive(4);
+                case 0: 
+                    for(var i=0; i< bytesRead; i++)this.tokenSize[i+state.Read] = Buffer[i];
+                    state.Read += bytesRead;
+                    if(state.BytesToRead == state.Read)
+                        BeginReceive(new State{ Type =1, BytesToRead =  tokenSize[2]*256 + tokenSize[3], Read = 0});
+                    else 
+                        BeginReceive(state);
                     break;
-            }
+                default: 
+                    BufferStr.Append(System.Text.Encoding.UTF8.GetString(Buffer, 0, bytesRead));
+                    if(Debug) Console.WriteLine($"Actual data : {BufferStr}");
+                    state.Read += bytesRead;
+                    if(state.BytesToRead == state.Read){
+                        var response = (JsonConvert.DeserializeObject<Response>(BufferStr.ToString()));
+                        HandleResponse(response);
+                        BufferStr.Clear();
+                        BeginReceive(new State{ Type =0, BytesToRead =  4, Read = 0});
+                    }
+                    else 
+                        BeginReceive(state);
+                    break;
+            } 
         }
 
         private void HandleResponse(Response response)

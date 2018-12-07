@@ -10,7 +10,7 @@ namespace Ckmio.Tests
             
             var ckmio = new CkmioClient("community-test-key", "community-test-secret", "Khady", "");
             ckmio.Start();
-            ckmio.Debug = true;
+            ckmio.Debug = false;
             String topicName = "A brand new topic";  
             String streamName = "A brand new Stream";
             ckmio.SubscribeToChat();
@@ -21,7 +21,9 @@ namespace Ckmio.Tests
             ckmio.FunnelUpdateHandler = (FunnelUpdate FunnelUpdate)=> Console.WriteLine("Funnel Update: " + FunnelUpdate.Content);
 
             ckmio.Send("Khady", "Hello");
-            ckmio.UpdateTopic(topicName, "Topic Update");
+            for(var i=0; i<10000;  i++){
+                ckmio.UpdateTopic(topicName, "Topic Update");
+            }
             ckmio.SendToStream(streamName, new { age = 60, name = "Bob", gender = "Male"});
             ckmio.SendToStream(streamName, new { age = 20, name = "Alice", gender = "Female"});
             Console.ReadLine();
